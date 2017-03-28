@@ -3,7 +3,6 @@
 
 #include "Map.h"
 #include "Snake.h"
-#include "Controller.h"
 
 class GameController
 {
