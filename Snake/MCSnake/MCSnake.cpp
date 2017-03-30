@@ -11,13 +11,13 @@ SnakeMC::~SnakeMC()
 
 };
 
-Coords getAppleCoords(const Block ** map, int nrows, int ncols)
+Coords SnakeMC::getAppleCoords(const Block ** map, int nrows, int ncols)
 {
   for(unsigned int i=0 ; i<nrows ; i++)
   {
     for (unsigned int j=0; j<ncols ; j++)
     {
-      if (map[i][j] == APPLE)
+      if (getBlock(map, i, j) == APPLE)
       {
         return (Coords){i, j};
       }
@@ -43,7 +43,7 @@ void SnakeMC::updateDirection(const Block ** map, int nrows, int ncols)
       }
       else if (head.x < apple.x)
       {
-        if (map[head.x][head.y + 1] == WALL)
+        if (getBlock(map, head.x, head.y + 1) == WALL)
         {
           m_direction = LEFT;
         }
@@ -60,7 +60,7 @@ void SnakeMC::updateDirection(const Block ** map, int nrows, int ncols)
       }
       else if (head.x > apple.x)
       {
-        if (map[head.x][head.y + 1] == WALL)
+        if (getBlock(map, head.x, head.y + 1) == WALL)
         {
           m_direction = LEFT;
         }
@@ -85,7 +85,7 @@ void SnakeMC::updateDirection(const Block ** map, int nrows, int ncols)
       }
       else if (head.y < apple.y)
       {
-        if (map[head.x + 1][head.y] == WALL)
+        if (getBlock(map, head.x + 1, head.y) == WALL)
         {
           m_direction = UP;
         }
@@ -106,7 +106,7 @@ void SnakeMC::updateDirection(const Block ** map, int nrows, int ncols)
       }
       else if (head.y > apple.y)
       {
-        if (map[head.x + 1][head.y] == WALL)
+        if (getBlock(map, head.x + 1, head.y) == WALL)
         {
           m_direction = UP;
         }

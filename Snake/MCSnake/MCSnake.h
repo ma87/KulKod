@@ -11,6 +11,9 @@ class SnakeMC : public Snake
 
    std::string getName();
    void updateDirection(const Block ** block, int nrows, int ncols);
+
+ private:
+   Coords getAppleCoords(const Block ** map, int nrows, int ncols);
 };
 
 extern "C" Snake* create() {

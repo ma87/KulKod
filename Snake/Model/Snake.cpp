@@ -57,3 +57,8 @@ Coords Snake::removePart()
   m_body.pop_back();
   return lastPosition;
 }
+
+Block Snake::getBlock(const Block ** map, unsigned int x, unsigned int y)
+{
+  return (Block)(map[x][y] & 0x0F);
+}

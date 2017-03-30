@@ -30,6 +30,9 @@ class Snake : AI
    void addScore(int score);
    short unsigned int m_player_number;
 
+ protected:
+   Block getBlock(const Block ** map, unsigned int x, unsigned int y);
+
   private:
    std::list<Coords> m_body;
    int m_score;
