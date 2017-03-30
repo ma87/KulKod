@@ -7,6 +7,7 @@ Snake::Snake()
  : m_body()
 {
   m_score = 0;
+  m_direction = UP;
 }
 
 void Snake::initPosition(Coords coord)

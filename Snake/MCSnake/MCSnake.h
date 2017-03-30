@@ -8,12 +8,9 @@ class SnakeMC : public Snake
   public:
    SnakeMC();
    ~SnakeMC();
-   
+
    std::string getName();
    void updateDirection(const Block ** block, int nrows, int ncols);
-  
-  private:
-    std::string m_name;
 };
 
 extern "C" Snake* create() {

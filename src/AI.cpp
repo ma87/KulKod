@@ -7,17 +7,17 @@ AIFactory::AIFactory(char * filename)
 {
   m_isLoaded = true;
   m_factoryName = filename;
-    
+
   m_factory = dlopen(filename, RTLD_LAZY);
-  if (!m_factory) 
+  if (!m_factory)
   {
       cerr << "Cannot load library: " << dlerror() << '\n';
       m_isLoaded = false;
   }
-    
+
   // reset errors
   dlerror();
-  
+
   // load the symbols
   m_create = (create_t*) dlsym(m_factory, "create");
   const char* dlsym_error = dlerror();
@@ -25,7 +25,7 @@ AIFactory::AIFactory(char * filename)
       cerr << "Cannot load symbol create: " << dlsym_error << '\n';
       m_isLoaded = false;
   }
-  
+
   m_destroy = (destroy_t*) dlsym(m_factory, "destroy");
   dlsym_error = dlerror();
   if (dlsym_error) {
@@ -43,7 +43,7 @@ AI* AIFactory::create()
   else
   {
     return NULL;
-  }  
+  }
 }
 
 void AIFactory::destroy(AI * ai)
@@ -64,12 +64,12 @@ AIFactory::~AIFactory()
 AIManager::AIManager()
  : m_factories()
 {
-  
+
 }
 
 AIManager::~AIManager()
 {
-  
+
 }
 
 AI * AIManager::getAI(char * dllName)
@@ -91,20 +91,21 @@ AIFactory * AIManager::loadFactory(char * dllName)
   AIFactory * factory;
   for(auto it = std::begin(m_factories) ; it != std::end(m_factories) ; ++it)
   {
-    if (!strcmp(it->getFactoryName(), dllName))
+    if (!strcmp((*it)->getFactoryName(), dllName))
     {
-      return &(*it);
+      std::cout << "found factory " << dllName << std::endl;
+      return (*it);
     }
   }
-  
+
   if (!isFactoryAlreadyCreated)
   {
-    factory = new AIFactory(dllName);
-    m_factories.push_back(*factory);
-    
+    std::cout << "create factory " << dllName << std::endl;
+    AIFactory * factory = new AIFactory(dllName);
+    m_factories.push_back(factory);
+
     return factory;
   }
-  
+
   return NULL; //TODO handle case AIFactory returns null
 }
-

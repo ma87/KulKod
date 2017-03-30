@@ -3,16 +3,22 @@
 
 #include "Snake.h"
 
-class SnakeExample : public Snake
+class SnakeTemplate : public Snake
 {
   public:
-   SnakeExample(std::string name);
+   SnakeTemplate();
+   ~SnakeTemplate();
 
    std::string getName();
-   ~SnakeExample();
-  
-  private:
-    std::string m_name;
+   void updateDirection(const Block ** block, int nrows, int ncols);
 };
+
+extern "C" Snake* create() {
+    return new SnakeTemplate();
+}
+
+extern "C" void destroy(Snake* p) {
+    delete p;
+}
 
 #endif

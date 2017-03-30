@@ -3,12 +3,12 @@
 SnakeMC::SnakeMC()
  :Snake()
 {
-  
+
 }
 
 SnakeMC::~SnakeMC()
 {
-  
+
 };
 
 Coords getAppleCoords(const Block ** map, int nrows, int ncols)
@@ -27,34 +27,15 @@ Coords getAppleCoords(const Block ** map, int nrows, int ncols)
 
 void SnakeMC::updateDirection(const Block ** map, int nrows, int ncols)
 {
-  // char choice;
-  // std::cin >> choice;
-  // switch(choice)
-  // {
-  //   case 'u':
-  //     m_direction = UP;
-  //     break;
-  //   case 'd':
-  //     m_direction = DOWN;
-  //     break;
-  //   case 'l':
-  //     m_direction = LEFT;
-  //     break;
-  //   case 'r':
-  //     m_direction = RIGHT;
-  //     break;
-  // }
-  
   Coords apple = getAppleCoords(map, nrows, ncols);
-  //std::cout << "apple is " << apple.x << " , " << apple.y << std::endl;
-  
+
   Coords head = getHeadPosition();
   switch(m_direction)
   {
     case UP:
       if (head.x == apple.x)
       {
-        m_direction = (head.y < apple.y) ? RIGHT : LEFT; 
+        m_direction = (head.y < apple.y) ? RIGHT : LEFT;
       }
       else if (head.x > apple.x)
       {
@@ -66,7 +47,7 @@ void SnakeMC::updateDirection(const Block ** map, int nrows, int ncols)
         {
           m_direction = LEFT;
         }
-        else 
+        else
         {
           m_direction = RIGHT;
         }
@@ -75,7 +56,7 @@ void SnakeMC::updateDirection(const Block ** map, int nrows, int ncols)
     case DOWN:
       if (head.x == apple.x)
       {
-        m_direction = (head.y < apple.y) ? RIGHT : LEFT; 
+        m_direction = (head.y < apple.y) ? RIGHT : LEFT;
       }
       else if (head.x > apple.x)
       {
@@ -83,7 +64,7 @@ void SnakeMC::updateDirection(const Block ** map, int nrows, int ncols)
         {
           m_direction = LEFT;
         }
-        else 
+        else
         {
           m_direction = RIGHT;
         }
@@ -96,7 +77,7 @@ void SnakeMC::updateDirection(const Block ** map, int nrows, int ncols)
     case LEFT:
       if (head.y == apple.y)
       {
-        m_direction = (head.x < apple.x) ? DOWN : UP; 
+        m_direction = (head.x < apple.x) ? DOWN : UP;
       }
       else if (head.y > apple.y)
       {
@@ -108,7 +89,7 @@ void SnakeMC::updateDirection(const Block ** map, int nrows, int ncols)
         {
           m_direction = UP;
         }
-        else 
+        else
         {
           m_direction = DOWN;
         }
@@ -117,7 +98,7 @@ void SnakeMC::updateDirection(const Block ** map, int nrows, int ncols)
     case RIGHT:
       if (head.y == apple.y)
       {
-        m_direction = (head.x < apple.x) ? DOWN : UP; 
+        m_direction = (head.x < apple.x) ? DOWN : UP;
       }
       else if (head.y < apple.y)
       {
@@ -129,7 +110,7 @@ void SnakeMC::updateDirection(const Block ** map, int nrows, int ncols)
         {
           m_direction = UP;
         }
-        else 
+        else
         {
           m_direction = DOWN;
         }

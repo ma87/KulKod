@@ -1,18 +1,22 @@
-#include "SnakeExample.h"
+#include "SnakeTemplate.h"
 
-SnakeExample::SnakeExample(std::string name)
+SnakeTemplate::SnakeTemplate()
   :Snake()
 {
-  m_name = name;  
 }
 
-SnakeExample::~SnakeExample()
+SnakeTemplate::~SnakeTemplate()
 {
-  
-  
+
+
 };
 
-std::string SnakeExample::getName()
+void SnakeTemplate::updateDirection(const Block ** map, int nrows, int ncols)
 {
-  return m_name;
+  // update member m_direction considering the current map
+}
+
+std::string SnakeTemplate::getName()
+{
+  return "SnakeTemplate";
 }

@@ -27,7 +27,7 @@ class AIFactory
     AI * create();
     void destroy(AI * ai);
     char * getFactoryName();
-  
+
   private:
     void* m_factory;
     create_t * m_create;
@@ -43,9 +43,9 @@ class AIManager
     ~AIManager();
     AIFactory * loadFactory(char * dllName);
     AI * getAI(char * dllName);
-    
+
   private:
-    std::vector<AIFactory> m_factories;
+    std::vector<AIFactory *> m_factories;
 };
 
 #endif
