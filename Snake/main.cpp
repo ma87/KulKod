@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "launcher.h"
+#include "rapl.h"
 
 int main(int argc, char** argv)
 {
@@ -24,6 +25,10 @@ int main(int argc, char** argv)
   int nrows = 32;
   int ncols = 32;  
   GameController control = GameController(nrows, ncols);
+
+  int core = 0;
+  FILE * fp = fopen("consumption.txt", "w");
+  rapl_init(core);
 
   executable_t * childs = (executable_t *)malloc(number_snakes * sizeof(executable_t));
   for( int i = 0 ; i < number_snakes ; i++)
@@ -48,6 +53,11 @@ int main(int argc, char** argv)
   char * serialized_map = (char *)malloc(size_map * sizeof(char));
   memset(serialized_map, 0, size_map);
 
+  double * energy_consumed = (double *)malloc(number_snakes * sizeof(double));
+  for (int i = 0 ; i < number_snakes ; i++)
+  {
+    energy_consumed[i] = 0.0;
+  }
   char direction;
   Direction * directions = (Direction *)malloc(number_snakes * sizeof(Direction));
   int crash_snake = 0;
@@ -60,9 +70,12 @@ int main(int argc, char** argv)
 
     for (int i = 0 ; i < number_snakes ; i++)
     {
+      rapl_before(fp, core);
       write_to_exe(&childs[i], serialized_map, size_map);
       read_from_exe(&childs[i], &direction, 1);  
       directions[i] = (Direction)direction;
+      energy_consumed[i] += rapl_after(fp, core);
+      std::cout << "Total energy consumed by player " << i + 1 << " = " << energy_consumed[i] << " J" << std::endl;
     }
 
     crash_snake = control.update(directions);
@@ -73,6 +86,7 @@ int main(int argc, char** argv)
   {
     kill_exe(pids[i]);
   }
-  
+  fclose(fp);
+  fflush(stdout);
   return 0;
 }

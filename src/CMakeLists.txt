@@ -17,4 +17,12 @@ target_sources(
 
   INTERFACE
   ${CMAKE_CURRENT_LIST_DIR}/launcher.c
+  ${CMAKE_CURRENT_LIST_DIR}/rapl.c
+)
+
+target_link_libraries(
+  ${TARGET}
+
+  INTERFACE
+  m
 )
