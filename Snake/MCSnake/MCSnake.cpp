@@ -1,9 +1,10 @@
 #include "MCSnake.h"
 
-SnakeMC::SnakeMC()
- :Snake()
+SnakeMC::SnakeMC(int player_number)
 {
-
+  m_player_number = player_number;
+  m_headPosition = (Coords){0,0};
+  m_direction = LEFT;
 }
 
 SnakeMC::~SnakeMC()
@@ -11,25 +12,67 @@ SnakeMC::~SnakeMC()
 
 };
 
-Coords SnakeMC::getAppleCoords(const Block ** map, int nrows, int ncols)
+Direction SnakeMC::getDirection()
 {
+  return m_direction;
+}
+
+void SnakeMC::initHeadPosition(const char * map, int nrows, int ncols)
+{
+  int current_index = 0;
   for(unsigned int i=0 ; i<nrows ; i++)
   {
-    for (unsigned int j=0; j<ncols ; j++)
+    for(unsigned int j=0 ; j<ncols ; j++)
     {
-      if (getBlock(map, i, j) == APPLE)
+      if (map[current_index] & SNAKE)
       {
-        return (Coords){i, j};
+          unsigned int player_number = map[current_index] >> 4;
+          if (player_number == m_player_number)
+          {
+            m_headPosition = (Coords){i,j};
+            return;
+          }
       }
+      current_index++;
     }
   }
 }
 
-void SnakeMC::updateDirection(const Block ** map, int nrows, int ncols)
+Coords SnakeMC::getAppleCoords(const char * map, int nrows, int ncols)
 {
-  Coords apple = getAppleCoords(map, nrows, ncols);
+  int current_index = 0;
+  for(unsigned int i=0 ; i<nrows ; i++)
+  {
+    for (unsigned int j=0; j<ncols ; j++)
+    {
+      if (map[current_index] == APPLE)
+      {
+        return (Coords){i, j};
+      }
+      current_index++;
+    }
+  }
+  return (Coords){0, 0};
+}
 
-  Coords head = getHeadPosition();
+Block SnakeMC::getBlock(const char * map, int i, int j, int ncols)
+{
+  // Matrix in column order
+  // Example 2x2
+  // [map(0) map(1)]
+  // [map(2) map(3)]
+  return (Block)map[j + ncols * i];
+}
+
+void SnakeMC::updateDirection(const char * map, int nrows, int ncols)
+{
+  if ((m_headPosition.x == 0) && (m_headPosition.y == 0))
+  {
+    initHeadPosition(map, nrows, ncols);
+  }
+
+  Coords apple = getAppleCoords(map, nrows, ncols);
+  Coords head = m_headPosition;
   switch(m_direction)
   {
     case UP:
@@ -43,7 +86,7 @@ void SnakeMC::updateDirection(const Block ** map, int nrows, int ncols)
       }
       else if (head.x < apple.x)
       {
-        if (getBlock(map, head.x, head.y + 1) == WALL)
+        if (getBlock(map, head.x, head.y + 1, ncols) == WALL)
         {
           m_direction = LEFT;
         }
@@ -60,7 +103,7 @@ void SnakeMC::updateDirection(const Block ** map, int nrows, int ncols)
       }
       else if (head.x > apple.x)
       {
-        if (getBlock(map, head.x, head.y + 1) == WALL)
+        if (getBlock(map, head.x, head.y + 1, ncols) == WALL)
         {
           m_direction = LEFT;
         }
@@ -85,7 +128,7 @@ void SnakeMC::updateDirection(const Block ** map, int nrows, int ncols)
       }
       else if (head.y < apple.y)
       {
-        if (getBlock(map, head.x + 1, head.y) == WALL)
+        if (getBlock(map, head.x + 1, head.y, ncols) == WALL)
         {
           m_direction = UP;
         }
@@ -106,7 +149,7 @@ void SnakeMC::updateDirection(const Block ** map, int nrows, int ncols)
       }
       else if (head.y > apple.y)
       {
-        if (getBlock(map, head.x + 1, head.y) == WALL)
+        if (getBlock(map, head.x + 1, head.y, ncols) == WALL)
         {
           m_direction = UP;
         }
@@ -115,6 +158,23 @@ void SnakeMC::updateDirection(const Block ** map, int nrows, int ncols)
           m_direction = DOWN;
         }
       }
+    break;
+  }
+
+  // Update head position
+  switch(m_direction)
+  {
+    case LEFT:
+    m_headPosition.y -= 1;
+    break;
+    case RIGHT:
+    m_headPosition.y += 1;
+    break;
+    case UP:
+    m_headPosition.x -= 1;
+    break;
+    case DOWN:
+    m_headPosition.x += 1;
     break;
   }
 }

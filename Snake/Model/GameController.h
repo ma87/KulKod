@@ -10,18 +10,17 @@ class GameController
     GameController(int nrows, int ncols);
     ~GameController();
 
-    int update();
-    int update(int nsamples);
-    void loadSnake(char * dllName, short unsigned int player_number);
+    int update(Direction * snake_direction);
+    void createSnake(int player_number);
     void start();
     void end(int crash_player_number);
+    int get_size_map();
+    int serialize_map(char * serialized_map, int size_buffer);
+  private:
+    Result updateMap(Snake & snake);
 
   private:
-    Result updateMap(Snake * snake);
-
-  private:
-    AIManager m_aiManager;
-    std::vector<Snake *> m_snakes;
+    std::vector<Snake> m_snakes;
     Map m_map;
 };
 

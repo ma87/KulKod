@@ -8,4 +8,4 @@ file(
 
 INCLUDE_DIRECTORIES(.)
 
-ADD_LIBRARY (template_snake SHARED ${source_files})
+add_executable (template_snake main.cpp)

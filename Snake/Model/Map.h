@@ -32,7 +32,7 @@ typedef struct
 
 typedef enum
 {
-  UP,
+  UP=0,
   DOWN,
   LEFT,
   RIGHT
@@ -51,6 +51,7 @@ class Map
     void setBlock(unsigned int x, unsigned int y, short unsigned int player_number);
     void setBlock(unsigned int x, unsigned int y, Block block);
     Block ** getMap();
+    int serialize(char * serialize_map, int size_buffer);
 
   private:
     Block ** m_map;

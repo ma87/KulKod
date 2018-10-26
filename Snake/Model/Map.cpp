@@ -81,6 +81,7 @@ Coords Map::initSnakePosition(short unsigned int player_number)
 
 void Map::print()
 {
+  
   std::vector<std::string> output;
   for(int i=0 ; i<m_nrows ; i++)
   {
@@ -107,7 +108,78 @@ void Map::print()
     }
     std::cout << "\n";
   }
+  
+  /*
+  Coords size = getSize();
+  int num_bytes = size.x * size.y;
+  char * bytes = (char *)malloc(num_bytes);
+  serialize(bytes, num_bytes);
+
+  int current_index = 0;
+  for(int i=0 ; i<m_nrows ; i++)
+  {
+    for(int j=0 ; j<m_ncols ; j++)
+    {
+      if (bytes[current_index] & 0x04)
+      {
+          std::cout << "X";
+      }
+      else if (bytes[current_index] & 0x01)
+      {
+          std::cout << " ";
+      }
+      else if (bytes[current_index] & 0x02)
+      {
+          std::cout << "0";
+      }
+      else if (bytes[current_index] & 0x08)
+      {
+          unsigned int player_number = bytes[current_index] >> 4;
+          std::cout << player_number;
+      }
+      current_index++;
+    }
+    std::cout << "\n";
+  }*/
 }
+
+int Map::serialize(char * serialize_map, int size_buffer)
+{
+   if (size_buffer != (m_nrows * m_ncols))
+   {
+     std::cout << "error during serialize: buffer size is invalid" << std::endl;
+     return 1;
+   }
+   
+   int current_index = 0;
+   for(int i=0 ; i<m_nrows ; i++)
+    {
+      for(int j=0 ; j<m_ncols ; j++)
+      {
+        short int block_type = m_map[i][j] & 0x0F;
+        short unsigned int number_player;
+        switch(block_type)
+        {
+          case WALL:
+            serialize_map[current_index] = WALL;
+          break;
+          case VOID:
+            serialize_map[current_index] = VOID;
+          break;
+          case SNAKE:
+            number_player = m_map[i][j] >> 16;
+            serialize_map[current_index] = (number_player << 4) | SNAKE;
+          break;
+          case APPLE:
+            serialize_map[current_index] = APPLE;
+          break;
+        }
+      current_index++;
+      }
+    }
+  return 0;
+}
+
 
 Block Map::getBlock(unsigned int x, unsigned int y)
 {
@@ -118,10 +190,6 @@ void Map::setBlock(unsigned int x, unsigned int y, short unsigned int player_num
 {
   int block_snake = player_number << 16 | SNAKE;
   m_map[x][y] = (Block)block_snake;
-
-  short int block_type = block_snake & 0x0F;
-
-  short int number_player = block_snake >> 16;
 }
 
 void Map::setBlock(unsigned int x, unsigned int y, Block block)

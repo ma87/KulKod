@@ -3,16 +3,22 @@
 using std::cout;
 using std::cerr;
 
-Snake::Snake()
+Snake::Snake(int player_number)
  : m_body()
 {
   m_score = 0;
   m_direction = UP;
+  m_player_number = player_number;
 }
 
 void Snake::initPosition(Coords coord)
 {
   m_body.push_front(coord);
+}
+
+void Snake::setDirection(Direction direction)
+{
+  m_direction = direction;
 }
 
 Direction Snake::getDirection()
@@ -43,12 +49,10 @@ void Snake::addScore(int score)
 
 void Snake::print()
 {
-  std::cout << "start snake " << getName() << std::endl;
   for(auto it = m_body.begin() ; it != m_body.end() ; ++it)
   {
     std::cout << "pos = " << it->x << " , " << it->y << std::endl;
   }
-  std::cout << "end snake " << getName() << std::endl;
 }
 
 Coords Snake::removePart()
@@ -58,7 +62,3 @@ Coords Snake::removePart()
   return lastPosition;
 }
 
-Block Snake::getBlock(const Block ** map, unsigned int x, unsigned int y)
-{
-  return (Block)(map[x][y] & 0x0F);
-}

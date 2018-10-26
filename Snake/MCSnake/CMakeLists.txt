@@ -8,4 +8,4 @@ file(
 
 INCLUDE_DIRECTORIES(.)
 
-ADD_LIBRARY (mcsnake SHARED ${source_files})
+add_executable (mcsnake ${source_files})

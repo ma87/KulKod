@@ -1,37 +1,78 @@
-// #include "Snake.h"
-// #include "Map.h"
 #include "GameController.h"
 #include <chrono>
 #include <thread>
+#include <stdio.h>
 
-using std::cout;
-using std::cerr;
+#include <unistd.h>
+#include <sys/wait.h>
+#include <sys/prctl.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <string.h>
 
-int main(int argc, char * argv[])
+#include "launcher.h"
+
+int main(int argc, char** argv)
 {
-  if (argc > 1)
+  if (argc <= 1)
   {
-    GameController control = GameController(30, 30);
-    for (int i = 1 ; i < argc ; i++)
-    {
-      control.loadSnake(argv[i], i);
-    }
-
-    control.start();
-    int crash_snake = 0;
-    while (crash_snake == 0)
-    {
-      std::this_thread::sleep_for(std::chrono::milliseconds(50));
-      system("clear");
-      crash_snake = control.update();
-    }
-
-    control.end(crash_snake);
-  }
-  else
-  {
-    std::cout << "usage: snake path_to_snake_implementation" << std::endl;
+    printf("usage: snake path_to_executable\n");
     return 1;
   }
+  int number_snakes = argc - 1;
+
+  int nrows = 32;
+  int ncols = 32;  
+  GameController control = GameController(nrows, ncols);
+
+  executable_t * childs = (executable_t *)malloc(number_snakes * sizeof(executable_t));
+  for( int i = 0 ; i < number_snakes ; i++)
+  {
+    control.createSnake(i+1);
+    childs[i].executable_path = argv[1 + i];
+  }
+
+  pid_t * pids = (pid_t *)malloc(number_snakes * sizeof(pid_t));
+  char number_player[2];
+  char nrows_str[3];
+  char ncols_str[3];
+  sprintf(nrows_str, "%d", nrows);
+  sprintf(ncols_str, "%d", ncols);
+  for( int i = 0 ; i < number_snakes ; i++)
+  {
+    sprintf(number_player, "%d", i+1);
+    pids[i] = launch_process(&childs[i], 3, number_player, nrows_str, ncols_str);
+  }
+
+  int size_map = control.get_size_map();
+  char * serialized_map = (char *)malloc(size_map * sizeof(char));
+  memset(serialized_map, 0, size_map);
+
+  char direction;
+  Direction * directions = (Direction *)malloc(number_snakes * sizeof(Direction));
+  int crash_snake = 0;
+  control.start();
+  while(!crash_snake)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    system("clear");
+    control.serialize_map(serialized_map, size_map);
+
+    for (int i = 0 ; i < number_snakes ; i++)
+    {
+      write_to_exe(&childs[i], serialized_map, size_map);
+      read_from_exe(&childs[i], &direction, 1);  
+      directions[i] = (Direction)direction;
+    }
+
+    crash_snake = control.update(directions);
+  }
+
+  control.end(crash_snake);
+  for (int i = 0 ; i < number_snakes ; i++)
+  {
+    kill_exe(pids[i]);
+  }
+  
   return 0;
 }

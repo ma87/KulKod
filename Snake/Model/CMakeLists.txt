@@ -6,4 +6,4 @@ file(
 		./*.cpp
 )
 
-ADD_LIBRARY (model ${source_files} ../../src/AI.cpp)
+ADD_LIBRARY (model ${source_files})

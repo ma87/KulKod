@@ -1,27 +1,52 @@
 #ifndef __SNAKE__MC_H
 #define __SNAKE__MC_H
+#include <string>
+#include <stdio.h>
+typedef enum
+{
+  VOID = 0x00,
+  WALL = 0x01,
+  APPLE = 0x02,
+  SNAKE = 0x04
+} Block;
 
-#include "Snake.h"
 
-class SnakeMC : public Snake
+typedef struct
+{
+  unsigned int x;
+  unsigned int y;
+} Coords;
+
+typedef enum
+{
+  UP=0,
+  DOWN,
+  LEFT,
+  RIGHT
+} Direction;
+
+class SnakeMC
 {
   public:
-   SnakeMC();
+   SnakeMC(int player_number);
    ~SnakeMC();
 
    std::string getName();
-   void updateDirection(const Block ** block, int nrows, int ncols);
+   void updateDirection(const char * block, int nrows, int ncols);
+   Direction getDirection();
 
- private:
-   Coords getAppleCoords(const Block ** map, int nrows, int ncols);
+  private:
+   void initHeadPosition(const char * map, int nrows, int ncols);
+   Coords getAppleCoords(const char * map, int nrows, int ncols);
+   Block getBlock(const char * map, int i, int j, int ncols);
+
+  private:
+   Coords m_headPosition;
+   Direction m_direction;
+   int m_player_number;
+
+   // DEBUG
+   FILE * f;
 };
-
-extern "C" Snake* create() {
-    return new SnakeMC();
-}
-
-extern "C" void destroy(Snake* p) {
-    delete p;
-}
 
 #endif

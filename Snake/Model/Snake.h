@@ -5,20 +5,14 @@
 
 #include <list>
 #include "Map.h"
-#include "AI.h"
 
-class Snake : AI
+class Snake
 {
   public:
-   Snake();
-   virtual ~Snake() {}
-   virtual std::string getName() = 0;
-   std::string getType()
-   {
-     return "SNAKE";
-   }
+   Snake(int player_number);
+   ~Snake() {}
 
-   virtual void updateDirection(const Block ** map, int nrows, int ncols) = 0;
+   void setDirection(Direction direction);
    void initPosition(Coords startPosition);
    Direction getDirection();
 
@@ -28,10 +22,6 @@ class Snake : AI
    void print();
    int getScore();
    void addScore(int score);
-   short unsigned int m_player_number;
-
- protected:
-   Block getBlock(const Block ** map, unsigned int x, unsigned int y);
 
   private:
    std::list<Coords> m_body;
@@ -39,6 +29,9 @@ class Snake : AI
 
   protected:
    Direction m_direction;
+
+  public:
+   int m_player_number;
 };
 
 
