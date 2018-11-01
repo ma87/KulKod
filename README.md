@@ -50,14 +50,14 @@ The executable is started by the GameController with 3 input arguments:
 In pseudo-code, executable looks like:
 
 > **read** input arguments to retrieve player_number and how many bytes should be read
-
+>
 > **while** True:
-
->   current_map = read(stdin, number_bytes)
-
->   direction   = MYSNAKE.update_direction(current_map)
-
->   write(stdout, direction) 
+>
+>     current_map = read(stdin, number_bytes)
+>
+>     direction   = MYSNAKE.update_direction(current_map)
+>
+>     write(stdout, direction) 
 
 Once game ends, GameController sends SIGTERM to all executables
 
