@@ -50,11 +50,11 @@ class Map
     Block getBlock(unsigned int x, unsigned int y);
     void setBlock(unsigned int x, unsigned int y, short unsigned int player_number);
     void setBlock(unsigned int x, unsigned int y, Block block);
-    Block ** getMap();
+    char convertBlockToByte(int row, int col);
     int serialize(char * serialize_map, int size_buffer);
 
   private:
-    Block ** m_map;
+    Block * m_map;
     unsigned int m_nrows;
     unsigned int m_ncols;
 };

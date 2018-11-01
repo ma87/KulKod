@@ -3,47 +3,40 @@
 
 Map::Map(int nrows, int ncols)
 {
-  m_map = (Block **)malloc(nrows * sizeof(Block *));
-  for(int i=0 ; i<nrows; i++)
-  {
-    m_map[i] = (Block *)malloc(ncols * sizeof(Block));
-    memset(m_map[i], 0, ncols * sizeof(Block));
-  }
+  m_map = (Block *)malloc(nrows * ncols * sizeof(Block));
+  memset(m_map, 0, nrows * ncols * sizeof(Block));
+
+  m_nrows = nrows;
+  m_ncols = ncols;
 
   // initialize walls
   for(int j=0 ; j<ncols ; j++)
   {
-    m_map[0][j] = WALL;
-    m_map[nrows - 1][j] = WALL;
+    setBlock(0, j, WALL);
+    setBlock(nrows - 1, j, WALL);
+  }
+
+  for (int j = 8 ; j < m_ncols - 8 ; j++)
+  {
+    setBlock(nrows / 2, j, WALL);
   }
 
   for(int i=0 ; i<nrows ; i++)
   {
-    m_map[i][0] = WALL;
-    m_map[i][ncols - 1] = WALL;
+    setBlock(i, 0, WALL);
+    setBlock(i, ncols - 1, WALL);
   }
 
-  m_nrows = nrows;
-  m_ncols = ncols;
 }
 
 Map::~Map()
 {
-  for(int i=0 ; i<m_nrows; i++)
-  {
-    free(m_map[i]);
-  }
   free(m_map);
 }
 
 Coords Map::getSize()
 {
   return (Coords) {m_nrows, m_ncols};
-}
-
-Block ** Map::getMap()
-{
-  return m_map;
 }
 
 bool Map::createApple()
@@ -55,10 +48,10 @@ bool Map::createApple()
   {
     x = rand() % m_nrows;
     y = rand() % m_ncols;
-    correctPosition = m_map[x][y] == VOID;
+    correctPosition = getBlock(x, y) == VOID;
   }
 
-  m_map[x][y] = APPLE;
+  setBlock(x, y, APPLE);
   return true;
 }
 
@@ -71,7 +64,7 @@ Coords Map::initSnakePosition(short unsigned int player_number)
   {
     x = rand() % m_nrows;
     y = rand() % m_ncols;
-    correctPosition = m_map[x][y] == VOID;
+    correctPosition = getBlock(x, y) == VOID;
   }
 
   setBlock(x, y, player_number);
@@ -87,7 +80,7 @@ void Map::print()
   {
     for(int j=0 ; j<m_ncols ; j++)
     {
-      short int block_type = m_map[i][j] & 0x0F;
+      short int block_type = getBlock(i, j) & 0x0F;
       short int number_player;
       switch(block_type)
       {
@@ -98,7 +91,7 @@ void Map::print()
           std::cout << " ";
         break;
         case SNAKE:
-          number_player = m_map[i][j] >> 16;
+          number_player = getBlock(i, j) >> 16;
           std::cout << number_player;
         break;
         case APPLE:
@@ -108,91 +101,56 @@ void Map::print()
     }
     std::cout << "\n";
   }
-  
-  /*
-  Coords size = getSize();
-  int num_bytes = size.x * size.y;
-  char * bytes = (char *)malloc(num_bytes);
-  serialize(bytes, num_bytes);
+}
 
-  int current_index = 0;
-  for(int i=0 ; i<m_nrows ; i++)
+char Map::convertBlockToByte(int row, int col)
+{
+  Block block = getBlock(row,col);
+  char c;
+  if (block & SNAKE)
   {
-    for(int j=0 ; j<m_ncols ; j++)
-    {
-      if (bytes[current_index] & 0x04)
-      {
-          std::cout << "X";
-      }
-      else if (bytes[current_index] & 0x01)
-      {
-          std::cout << " ";
-      }
-      else if (bytes[current_index] & 0x02)
-      {
-          std::cout << "0";
-      }
-      else if (bytes[current_index] & 0x08)
-      {
-          unsigned int player_number = bytes[current_index] >> 4;
-          std::cout << player_number;
-      }
-      current_index++;
-    }
-    std::cout << "\n";
-  }*/
+    short unsigned int number_player = block >> 16;
+    c = (number_player << 4) | SNAKE;
+  }
+  else
+  {
+    c = (char)block;
+  }
+  return c;
 }
 
 int Map::serialize(char * serialize_map, int size_buffer)
 {
-   if (size_buffer != (m_nrows * m_ncols))
-   {
-     std::cout << "error during serialize: buffer size is invalid" << std::endl;
-     return 1;
-   }
-   
-   int current_index = 0;
-   for(int i=0 ; i<m_nrows ; i++)
+  if (size_buffer != (m_nrows * m_ncols))
+  {
+    std::cout << "error during serialize: buffer size is invalid" << std::endl;
+    return 1;
+  }
+
+  for (int i=0 ; i < m_nrows ; i++)
+  {
+    for (int j = 0 ; j < m_ncols ; j++)
     {
-      for(int j=0 ; j<m_ncols ; j++)
-      {
-        short int block_type = m_map[i][j] & 0x0F;
-        short unsigned int number_player;
-        switch(block_type)
-        {
-          case WALL:
-            serialize_map[current_index] = WALL;
-          break;
-          case VOID:
-            serialize_map[current_index] = VOID;
-          break;
-          case SNAKE:
-            number_player = m_map[i][j] >> 16;
-            serialize_map[current_index] = (number_player << 4) | SNAKE;
-          break;
-          case APPLE:
-            serialize_map[current_index] = APPLE;
-          break;
-        }
-      current_index++;
-      }
+     serialize_map[j + i * m_ncols] = convertBlockToByte(i, j);
     }
+  }
+   
   return 0;
 }
 
 
 Block Map::getBlock(unsigned int x, unsigned int y)
 {
-  return m_map[x][y];
+  return m_map[y + x * m_ncols];
 }
 
 void Map::setBlock(unsigned int x, unsigned int y, short unsigned int player_number)
 {
   int block_snake = player_number << 16 | SNAKE;
-  m_map[x][y] = (Block)block_snake;
+  m_map[y + x * m_ncols] = (Block)block_snake;
 }
 
 void Map::setBlock(unsigned int x, unsigned int y, Block block)
 {
-  m_map[x][y] = block;
+  m_map[y + x * m_ncols] = block;
 }

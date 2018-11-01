@@ -21,14 +21,14 @@ int open_msr(int core) {
   if ( fd < 0 ) {
     if ( errno == ENXIO ) {
       fprintf(stderr, "rdmsr: No CPU %d\n", core);
-      exit(2);
+      fd = 2;
     } else if ( errno == EIO ) {
       fprintf(stderr, "rdmsr: CPU %d doesn't support MSRs\n", core);
-      exit(3);
+      fd = 3;
     } else {
       perror("rdmsr:open");
       fprintf(stderr,"Trying to open %s\n",msr_filename);
-      exit(127);
+      fd = 127;
     }
   }
 
@@ -260,7 +260,7 @@ void rapl_before(FILE * fp,int core)
      dram_before=(double)result*energy_units;
      fprintf(fp,"DRAM energy before: %.6fJ\n",dram_before);
   }
-
+  close(fd);
 }
 
 
@@ -300,6 +300,6 @@ double rapl_after(FILE * fp , int core)
   }
   else
     fprintf(fp," , ");  
-  
+  close(fd); 
   return package_energy_consumed;
 }
