@@ -37,7 +37,7 @@ int main(int argc, char** argv)
   
   f = fopen(filename, "w");
   fprintf(f, "filename %d %d %d = %s\n", player_number, nrows, ncols, filename);
-  SnakeMC snake(player_number);
+  SnakeMC snake(player_number, nrows, ncols);
 
   // Infinite loop until parent sends SIGTERM
   char direction;
@@ -47,7 +47,7 @@ int main(int argc, char** argv)
     size_t r = fread(rbuf, 1, size_map, stdin);
 
     // Implement your solution here: set direction to LEFT, RIGHT, UP, DOWN
-    snake.updateDirection(rbuf, nrows, ncols);
+    snake.updateDirection(rbuf);
     direction = snake.getDirection();
     size_t written = fwrite(&direction, 1, 1, stdout);
     fflush(stdout);
