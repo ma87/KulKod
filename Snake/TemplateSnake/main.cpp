@@ -3,8 +3,6 @@
 #include <string.h>
 #include <signal.h>
 
-FILE *f;
-
 typedef enum
 {
   UP=0,
@@ -16,7 +14,6 @@ typedef enum
 // Function called when game is finished
 void onExit(int i)
 {
-  fclose(f);
   exit(0);
 }
 
@@ -36,29 +33,18 @@ int main(int argc, char** argv)
   char * rbuf = (char *)malloc(size_map);
 
   memset(rbuf, 0, size_map);
-  char filename[50];
-
-  strcpy(filename, argv[1]);
-  strcat(filename, ".txt");
-  
-  f = fopen(filename, "w");
-  fprintf(f, "filename %d %d %d = %s\n", player_number, nrows, ncols, filename);
 
   // Infinite loop until parent sends SIGTERM
   char direction;
   while (1)
   {
-    fprintf(f, "wait to read map\n");
+    // Read size_map bytes in rbuf
     size_t r = fread(rbuf, 1, size_map, stdin);
 
-    // Implement your solution here: set direction to LEFT, RIGHT, UP, DOWN
-    char value = rbuf[0];
-    char value2 = rbuf[35];
-    fprintf(f, "read value %c %ld write\n", value, r);
-    fprintf(f, "read value2 %c %ld write\n", value2, r);
- 
+    // Implement your solution here depending on rbuf: set direction to LEFT, RIGHT, UP, DOWN
     direction = RIGHT;
 
+    // Write to parent process the direction of the snake
     size_t written = fwrite(&direction, 1, 1, stdout);
     fflush(stdout);
   }
