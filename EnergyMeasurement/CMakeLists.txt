@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 2.8)
 
-set(TARGET KulKod CACHE INTERNAL "")
+set(TARGET EnergyMeasurement CACHE INTERNAL "")
+set(TARGET_EXE energy_measurement)
 
 add_library(${TARGET} INTERFACE)
 add_library(KulKod::${TARGET} ALIAS ${TARGET})
@@ -16,7 +17,6 @@ target_sources(
   ${TARGET}
 
   INTERFACE
-  ${CMAKE_CURRENT_LIST_DIR}/launcher.c
   ${CMAKE_CURRENT_LIST_DIR}/rapl.c
 )
 
@@ -25,4 +25,11 @@ target_link_libraries(
 
   INTERFACE
   m
+)
+
+add_executable(${TARGET_EXE} main.c)
+target_link_libraries(
+  ${TARGET_EXE}
+
+  ${TARGET}
 )
