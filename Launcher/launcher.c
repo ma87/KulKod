@@ -7,7 +7,7 @@ pid_t launch_process(executable_t * exec, int argc, ...)
 
   init_pipes(&exec->pipes);
 
-  pid_t pid = fork(); 
+  pid_t pid = fork();
   if (pid == 0)
   {
     char ** argv = (char **)malloc((argc + 2)*sizeof(char *));
@@ -25,7 +25,7 @@ pid_t launch_process(executable_t * exec, int argc, ...)
     prctl(PR_SET_PDEATHSIG, SIGTERM);
 
     execv(exec->executable_path, argv);
-    // Nothing below this line should be executed by child process. If so, 
+    // Nothing below this line should be executed by child process. If so,
     // it means that the execl function wasn't successfull, so lets exit:
     printf("ERROR launching child process\n");
     exit(1);
@@ -66,5 +66,3 @@ int kill_exe(pid_t pid)
   waitpid(pid, &status, 0);
   return status;
 }
-
-

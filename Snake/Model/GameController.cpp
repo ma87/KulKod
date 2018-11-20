@@ -52,10 +52,10 @@ void GameController::end(int crash_player_number)
   fclose(f_result);
 }
 
-int GameController::update(Direction * snake_direction)
+int GameController::update(Direction * snake_direction, bool verbose_mode)
 {
   int snake_crash = 0;
-  
+
   int current_snake = 0;
   for(std::vector<Snake>::iterator snake = m_snakes.begin() ; snake != m_snakes.end() ; ++snake)
   {
@@ -66,11 +66,17 @@ int GameController::update(Direction * snake_direction)
       snake_crash = snake->m_player_number;
     }
 
-    std::cout << "player " << current_snake + 1 << " score = " << snake->getScore() << std::endl;
+    if (verbose_mode)
+    {
+      std::cout << "player " << current_snake + 1 << " score = " << snake->getScore() << std::endl;
+    }
     current_snake++;
   }
-  
-  m_map.print();
+
+  if (verbose_mode)
+  {
+    m_map.print();
+  }
 
   return snake_crash;
 }
@@ -137,4 +143,3 @@ Result GameController::updateMap(Snake & snake)
 
   return res;
 }
-

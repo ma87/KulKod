@@ -21,14 +21,11 @@ int open_msr(int core) {
   if ( fd < 0 ) {
     if ( errno == ENXIO ) {
       fprintf(stderr, "rdmsr: No CPU %d\n", core);
-      fd = 2;
     } else if ( errno == EIO ) {
       fprintf(stderr, "rdmsr: CPU %d doesn't support MSRs\n", core);
-      fd = 3;
     } else {
       perror("rdmsr:open");
       fprintf(stderr,"Trying to open %s\n",msr_filename);
-      fd = 127;
     }
   }
 
@@ -115,11 +112,6 @@ int detect_cpu(void) {
   return model;
 }
 
-
-
-
-
-
 int rapl_init(int core)
 { int fd;
   long long result;
@@ -149,13 +141,47 @@ int rapl_init(int core)
   return 0;
 }
 
+int init_rapl_measurement(rapl_measurement_t * rapl_msrnt, int core)
+{
+  rapl_msrnt->cpu_model = detect_cpu();
+  if (rapl_msrnt->cpu_model < 0)
+  {
+    printf("Unsupported CPU type\n");
+    return -1;
+  }
+
+  rapl_msrnt->core = core;
+  rapl_msrnt->fd = open_msr(core);
+
+  if (rapl_msrnt->fd < 0)
+  {
+    return -1;
+  }
+
+  long long result = read_msr(rapl_msrnt->fd,MSR_RAPL_POWER_UNIT);
+
+  rapl_msrnt->power_units = pow(0.5,(double)(result&0xf));
+  rapl_msrnt->energy_units = pow(0.5,(double)((result>>8)&0x1f));
+  rapl_msrnt->time_units = pow(0.5,(double)((result>>16)&0xf));
+
+  return 0;
+}
+
+double get_current_energy(rapl_measurement_t * rapl_msrnt)
+{
+  long long result = read_msr(rapl_msrnt->fd, MSR_PKG_ENERGY_STATUS);
+  return (double)result * rapl_msrnt->energy_units;
+}
+
+void close_rapl_measurement(rapl_measurement_t * rapl_msrnt)
+{
+  close(rapl_msrnt->fd);
+}
 
 void show_power_info(int core)
 { int fd;
   long long result;
   double thermal_spec_power,minimum_power,maximum_power,time_window;
-
-
 
  /* Show package power info */
 
@@ -299,7 +325,7 @@ double rapl_after(FILE * fp , int core)
      fprintf(fp,"%.18f, ",dram_after-dram_before);     // DRAM
   }
   else
-    fprintf(fp," , ");  
-  close(fd); 
+    fprintf(fp," , ");
+  close(fd);
   return package_energy_consumed;
 }

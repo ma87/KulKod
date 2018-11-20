@@ -17,7 +17,8 @@ target_sources(
   ${TARGET}
 
   INTERFACE
-  ${CMAKE_CURRENT_LIST_DIR}/rapl.c
+  ${CMAKE_CURRENT_LIST_DIR}/energy_measurement.c
+  ${CMAKE_CURRENT_LIST_DIR}/rapl.c  
 )
 
 target_link_libraries(

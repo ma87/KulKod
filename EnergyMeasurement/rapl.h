@@ -62,6 +62,21 @@ int open_msr(int core);
 long long read_msr(int fd, int which);
 int detect_cpu(void) ;
 int rapl_init(int core);
+
+typedef struct
+{
+  double power_units;
+  double energy_units;
+  double time_units;
+  int cpu_model;
+  int core;
+  int fd;
+} rapl_measurement_t;
+
+int init_rapl_measurement(rapl_measurement_t * rapl_msrnt, int core);
+double get_current_energy(rapl_measurement_t * rapl_msrnt);
+void close_rapl_measurement(rapl_measurement_t * rapl_msrnt);
+
 void show_power_info(int core);
 void show_power_limit(int core);
 void rapl_before (FILE * , int);
@@ -70,4 +85,3 @@ double rapl_after  (FILE * , int);
 #ifdef __cplusplus
 }
 #endif
-

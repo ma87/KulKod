@@ -10,7 +10,7 @@ class GameController
     GameController(int nrows, int ncols);
     ~GameController();
 
-    int update(Direction * snake_direction);
+    int update(Direction * snake_direction, bool verbose_mode);
     void createSnake(int player_number);
     void start();
     void end(int crash_player_number);
