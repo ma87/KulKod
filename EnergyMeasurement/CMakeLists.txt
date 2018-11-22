@@ -18,7 +18,7 @@ target_sources(
 
   INTERFACE
   ${CMAKE_CURRENT_LIST_DIR}/energy_measurement.c
-  ${CMAKE_CURRENT_LIST_DIR}/rapl.c  
+  ${CMAKE_CURRENT_LIST_DIR}/rapl.c
 )
 
 target_link_libraries(
@@ -28,7 +28,7 @@ target_link_libraries(
   m
 )
 
-add_executable(${TARGET_EXE} main.c)
+add_executable(${TARGET_EXE} EXCLUDE_FROM_ALL main.c)
 target_link_libraries(
   ${TARGET_EXE}
 
