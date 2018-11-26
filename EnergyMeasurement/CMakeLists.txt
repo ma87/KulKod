@@ -28,9 +28,11 @@ target_link_libraries(
   m
 )
 
-add_executable(${TARGET_EXE} EXCLUDE_FROM_ALL main.c)
+add_executable(${TARGET_EXE} main.c)
 target_link_libraries(
   ${TARGET_EXE}
 
   ${TARGET}
 )
+
+install(TARGETS ${TARGET_EXE} DESTINATION bin)
