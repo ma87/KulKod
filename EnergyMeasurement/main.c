@@ -29,18 +29,23 @@ int main(int argc, char * argv[])
   start_energy_measurement(&energy_msrt);
 
   long long counter = 0;
-  double energy_threshold = 100.0;
+  double energy_threshold = 50.0;
+
+  int fd[2];
+  pipe(fd);
+
   while (energy_msrt.total_energy_consumed < energy_threshold)
   {
     int pid = fork();
     if (pid == 0)
     {
+      dup2(fd[1], STDOUT_FILENO); // Redirect stdout of child to input of parent
+
       // child starts command passed in argument
   		int exec_status = execvp(argv[1], argv+1);
     }
     else
     {
-
       int status = 1;
   		waitpid(pid, &status, WNOHANG);
       while (status)
@@ -48,7 +53,7 @@ int main(int argc, char * argv[])
         //usleep(25000);
         trigger_energy_measurement(&energy_msrt);
         //printf("\r%lf J consumed in %lf us", energy_msrt.total_energy_consumed, energy_msrt.total_time_elapsed);
-        fflush(stdout);
+        //fflush(stdout);
         waitpid(pid, &status, WNOHANG);
       }
     }
@@ -56,8 +61,8 @@ int main(int argc, char * argv[])
     counter++;
   }
 
-  printf("\nIt took %lld iterations to consume %lf J for program %s\nIt consumed on average %lf J in %lf us per iteration\n", counter, energy_threshold, argv[1], energy_msrt.total_energy_consumed / counter, energy_msrt.total_time_elapsed / counter);
-
+  //printf("%lldme %lf J for program %s\nIt consumed on average %lf J in %lf us per iteration\n", counter, energy_threshold, argv[1], energy_msrt.total_energy_consumed / counter, energy_msrt.total_time_elapsed / counter);
+  printf("%lf,%lf\n", energy_msrt.total_energy_consumed / counter, energy_msrt.total_time_elapsed / counter);
 
   return 0;
 }

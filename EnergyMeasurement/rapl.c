@@ -91,19 +91,14 @@ int detect_cpu(void) {
   fclose(fff);
   switch(model) {
     case CPU_SANDYBRIDGE:
-      printf("Found Sandybridge CPU\n");
       break;
     case CPU_SANDYBRIDGE_EP:
-      printf("Found Sandybridge-EP CPU\n");
       break;
     case CPU_IVYBRIDGE:
-      printf("Found Ivybridge CPU\n");
       break;
     case CPU_IVYBRIDGE_EP:
-      printf("Found Ivybridge-EP CPU\n");
       break;
     case CPU_HASWELL:
-      printf("Found Haswell CPU\n");
       break;
     default:  printf("Unsupported model %d\n",model);
         model=-1;
