@@ -13,7 +13,7 @@ void trigger_energy_measurement(energy_measurement_t * e_msrnt)
 {
   struct timespec current_time;
   clock_gettime(CLOCK_REALTIME, &current_time);
-  e_msrnt->total_time_elapsed = (current_time.tv_sec - e_msrnt->current_time.tv_sec) * 1e6 + (current_time.tv_nsec - e_msrnt->current_time.tv_nsec) / 1e3;    // in microseconds
+  e_msrnt->total_time_elapsed = (current_time.tv_sec - e_msrnt->current_time.tv_sec) * 1e3 + (current_time.tv_nsec - e_msrnt->current_time.tv_nsec) / 1e6;    // in milliseconds
 
   double current_energy = get_current_energy(e_msrnt->rapl_measurement);
   e_msrnt->total_energy_consumed = current_energy - e_msrnt->last_energy_measured;
@@ -29,7 +29,7 @@ void stop_energy_measurement(energy_measurement_t * e_msrnt)
 {
   struct timespec current_time;
   clock_gettime(CLOCK_REALTIME, &current_time);
-  e_msrnt->total_time_elapsed += (current_time.tv_sec - e_msrnt->current_time.tv_sec) * 1e6 + (current_time.tv_nsec - e_msrnt->current_time.tv_nsec) / 1e3;    // in microseconds
+  e_msrnt->total_time_elapsed += (current_time.tv_sec - e_msrnt->current_time.tv_sec) * 1e3 + (current_time.tv_nsec - e_msrnt->current_time.tv_nsec) / 1e6;    // in millicroseconds
 
   double current_energy = get_current_energy(e_msrnt->rapl_measurement);
   e_msrnt->total_energy_consumed += current_energy - e_msrnt->last_energy_measured;

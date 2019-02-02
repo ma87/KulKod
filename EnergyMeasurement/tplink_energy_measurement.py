@@ -81,15 +81,15 @@ class energy_tool():
 class timer_tool(threading.Thread):
     def __init__(self, energy_tool):
         threading.Thread.__init__(self)
-        
+
         self.energy_tool = energy_tool
         self.stop_event = threading.Event()
-       
+
     def stop(self):
         self.stop_event.set()
 
     def stopped(self):
-        return self.stop_event.is_set() 
+        return self.stop_event.is_set()
 
     def run(self):
         self.energy_tool.tick = timer()
@@ -109,7 +109,7 @@ et = energy_tool(args.target, 9999)
 
 # Calibration phase
 
-print "Start calibration phase"
+#print "Start calibration phase"
 calibration_timer = timer_tool(et)
 et.is_calibrating = True
 calibration_timer.start()
@@ -118,7 +118,7 @@ res.wait()
 calibration_timer.stop()
 calibration_timer.join()
 meaned_powers = mean(et.powers)
-print "mean power measured ", meaned_powers
+#print "mean power measured ", meaned_powers
 
 et.ref_power = meaned_powers
 
@@ -130,33 +130,38 @@ time_elapsed    = []
 
 if args.number_measures is not None:
     number_measures = int(args.number_measures)
-    print "execute ", number_measures, " times"
+    #print "execute ", number_measures, " times"
 else:
     number_measures = 10
-    print "default number_measures = ", number_measures
+    #print "default number_measures = ", number_measures
+
+core = 0
+energy_threshold = 5.0
 
 for i in xrange(number_measures):
     time.sleep(1)
-
+    counter = 0
     et.current_energy = 0
     measure_timer = timer_tool(et)
     measure_timer.start()
-
     program_starts = timer()
-
-    res = subprocess.Popen(args.command.split(), stdout=FNULL, stderr=subprocess.STDOUT)
-    res.wait()
+    while et.current_energy <  energy_threshold:
+        res = subprocess.Popen(["taskset", "-c", str(core)] + args.command.split(), stdout=FNULL, stderr=subprocess.STDOUT)
+        res.wait()
+        core = core + 1
+        if core > 7:
+            core = 0
+        counter = counter + 1
 
     program_ends = timer()
     measure_timer.stop()
     measure_timer.join()
 
-    energy_measures.append(et.current_energy)
-    time_elapsed.append(program_ends - program_starts)
+
+    energy_measures.append(et.current_energy / counter)
+    time_elapsed.append((program_ends - program_starts) / counter)
 
 FNULL.close()
 et.sock_tcp.close()
 
-print "energy_consumed per run = ", mean(energy_measures)
-print "in time " , mean(time_elapsed)
-
+print str(mean(energy_measures)) + "," + str(mean(time_elapsed) * 1000)
