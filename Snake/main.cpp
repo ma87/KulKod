@@ -38,6 +38,11 @@ int main(int argc, char** argv)
   int core = 0;
   rapl_measurement_t rapl_msrnt;
   int res = init_rapl_measurement(&rapl_msrnt, core);
+  energy_plugin_t rapl_plugin;
+  rapl_plugin.data = &rapl_msrnt;
+  rapl_plugin.f    = get_current_energy_rapl;
+  rapl_plugin.p    = RAPL;
+
   std::cout << " init rapl " << res << std::endl;
   can_measure = !res;
   FILE * fp;
@@ -72,7 +77,7 @@ int main(int argc, char** argv)
   energy_measurement_t * energy_msrnts = (energy_measurement_t *)malloc(number_snakes * sizeof(energy_measurement_t));
   for (int i = 0 ; i < number_snakes ; i++)
   {
-    init_energy_measurement(&energy_msrnts[i], &rapl_msrnt);
+    init_energy_measurement(&energy_msrnts[i], &rapl_plugin);
   }
   char direction;
   Direction * directions = (Direction *)malloc(number_snakes * sizeof(Direction));

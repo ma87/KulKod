@@ -162,8 +162,9 @@ int init_rapl_measurement(rapl_measurement_t * rapl_msrnt, int core)
   return 0;
 }
 
-double get_current_energy(rapl_measurement_t * rapl_msrnt)
+double get_current_energy_rapl(energy_data_t data)
 {
+  rapl_measurement_t * rapl_msrnt = (rapl_measurement_t *)data;
   long long result = read_msr(rapl_msrnt->fd, MSR_PKG_ENERGY_STATUS);
   return (double)result * rapl_msrnt->energy_units;
 }

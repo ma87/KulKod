@@ -110,17 +110,17 @@ et = energy_tool(args.target, 9999)
 # Calibration phase
 
 #print "Start calibration phase"
-calibration_timer = timer_tool(et)
-et.is_calibrating = True
-calibration_timer.start()
-res = subprocess.Popen(["sleep", "5"], stdout=FNULL, stderr=subprocess.STDOUT)
-res.wait()
-calibration_timer.stop()
-calibration_timer.join()
-meaned_powers = mean(et.powers)
+# calibration_timer = timer_tool(et)
+# et.is_calibrating = True
+# calibration_timer.start()
+# res = subprocess.Popen(["sleep", "5"], stdout=FNULL, stderr=subprocess.STDOUT)
+# res.wait()
+# calibration_timer.stop()
+# calibration_timer.join()
+# meaned_powers = mean(et.powers)
 #print "mean power measured ", meaned_powers
 
-et.ref_power = meaned_powers
+et.ref_power = 0
 
 # Measure phase
 et.is_calibrating = False
@@ -136,7 +136,7 @@ else:
     #print "default number_measures = ", number_measures
 
 core = 0
-energy_threshold = 5.0
+energy_threshold = 10.0
 
 for i in xrange(number_measures):
     time.sleep(1)

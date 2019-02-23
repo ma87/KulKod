@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define NUMBER_MEASURES 10
+#define NUMBER_MEASURES 1
 
 char * get_call_command(int core, int argc, char * argv[])
 {
@@ -69,7 +69,12 @@ int main(int argc, char * argv[])
     return 2;
   }
 
-  init_energy_measurement(&energy_msrt, &rapl_msrt);
+  energy_plugin_t rapl_plugin;
+  rapl_plugin.data = &rapl_msrt;
+  rapl_plugin.f    = get_current_energy_rapl;
+  rapl_plugin.p    = RAPL;
+
+  init_energy_measurement(&energy_msrt, &rapl_plugin);
 
   long long counter = 0;
   double energy_threshold = 100.0;
@@ -109,7 +114,7 @@ int main(int argc, char * argv[])
         // Update CPU ID in call command. Look in get_call_command to compute position in char array
         call_command[11] = core + '0';
 
-        if (init_rapl_measurement(&rapl_msrt, core))
+        if (init_rapl_measurement(&rapl_msrt, 0))
         {
           printf("error: can't measure energy using RAPL\n");
           return 2;
@@ -149,7 +154,7 @@ int main(int argc, char * argv[])
   mean_energy /= NUMBER_MEASURES;
   mean_time /= NUMBER_MEASURES;
 
-  printf("%lf,%lf\n", mean_energy, mean_time);
+  printf("%lf,%lf,%lf,%lld\n", mean_energy, mean_time, energy_threshold, counter);
 
   free(call_command);
 

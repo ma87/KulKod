@@ -9,6 +9,8 @@
 #include <math.h>
 #include <string.h>
 
+#include "energy_plugin.h"
+
 // Original file:
 // https://github.com/greensoftwarelab/Energy-Languages
 
@@ -74,9 +76,10 @@ typedef struct
 } rapl_measurement_t;
 
 int init_rapl_measurement(rapl_measurement_t * rapl_msrnt, int core);
-double get_current_energy(rapl_measurement_t * rapl_msrnt);
+
 void close_rapl_measurement(rapl_measurement_t * rapl_msrnt);
 
+double get_current_energy_rapl(energy_data_t data);
 void show_power_info(int core);
 void show_power_limit(int core);
 void rapl_before (FILE * , int);
