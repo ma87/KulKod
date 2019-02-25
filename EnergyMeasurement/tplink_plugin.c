@@ -1,16 +1,4 @@
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <pthread.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-
-#include <byteswap.h>
+#include "tplink_plugin.h"
 
 char * encrypt(const char * message, int * size_output)
 {
@@ -45,65 +33,71 @@ void decrypt(char * buffer, int size_buffer)
     }
 }
 
-void *server(void * data)
+int run_measures(tplink_measurement_t * tplink_msrnt)
 {
-    printf("server thread\n");
-    int sockfd, newsockfd, portno;
-     socklen_t clilen;
-     char buffer[256];
-     struct sockaddr_in serv_addr, cli_addr;
-     int n;
-     sockfd = socket(AF_INET, SOCK_STREAM, 0);
-     if (sockfd < 0)
-        printf("server: ERROR opening socket\n");
-
-    int yes=1;
-
-     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1) {
-       perror("setsockopt");
-       exit(1);
-     }
-     bzero((char *) &serv_addr, sizeof(serv_addr));
-     portno = 8008;
-     serv_addr.sin_family = AF_INET;
-     serv_addr.sin_addr.s_addr = INADDR_ANY;
-     serv_addr.sin_port = htons(portno);
-     if (bind(sockfd, (struct sockaddr *) &serv_addr,
-              sizeof(serv_addr)) < 0)
-              printf("server: ERROR on binding\n");
-     listen(sockfd,5);
-     clilen = sizeof(cli_addr);
-     newsockfd = accept(sockfd,
-                 (struct sockaddr *) &cli_addr,
-                 &clilen);
-     if (newsockfd < 0)
-          printf("server: ERROR on accept\n");
-     bzero(buffer,256);
-     n = read(newsockfd,buffer,255);
-     printf("server received message: %s\n", buffer);
-     n = write(sockfd,buffer,strlen(buffer));
-     if (n < 0)
-          printf("server: ERROR writing socket\n");
-    close(newsockfd);
-    close(sockfd);
+    return tplink_msrnt->is_running;
 }
 
-char * client(char * buffer, int size_buffer)
+void stop_measure_thread(tplink_measurement_t * tplink_msrnt)
 {
+    tplink_msrnt->is_running = 0;
+}
+
+void compute_measure(tplink_measurement_t * tplink_msrnt, char * answer)
+{
+    // measure time elapsed since last measure
+    struct timespec current_time;
+    clock_gettime(CLOCK_REALTIME, &current_time);
+    double time_measure = current_time.tv_sec + current_time.tv_nsec / 1e9;
+    double time_elapsed = time_measure - tplink_msrnt->last_measure_timestamp;
+
+    // read in answer current power
+    regmatch_t matches[1];
+    double mw = 0.0;
+    if(regexec(&tplink_msrnt->reg, answer, 1, matches, 0) == 0)
+    {
+	for (int i = matches[0].rm_so ; i < matches[0].rm_eo ; i++)
+	{
+		if (answer[i] == ':')
+		{
+			int number_digits = matches[0].rm_eo - i;
+			char * str_mw = malloc((number_digits + 1) * sizeof(char));
+			memcpy(str_mw, answer + (i + 1), number_digits);
+			str_mw[number_digits] = '\0';
+			mw = atoi(str_mw);
+			free(str_mw);
+			break;
+		}
+	}
+    }
+
+    // update energy_consumed
+    tplink_msrnt->energy_consumed += (mw / 1e3) * time_elapsed;
+    tplink_msrnt->last_measure_timestamp = time_measure;
+}
+
+void * measure(void * data)
+{
+    tplink_measurement_t * tplink_msrnt = (tplink_measurement_t *)data;
+
+    // Socket communication initialization
     int sockfd, portno, n;
     struct sockaddr_in serv_addr;
     struct hostent *server;
-    //char *buffer = (char *)data;
 
     portno = 9999;
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
-        printf("client: ERROR opening socket\n");
-    server = gethostbyname("192.168.1.248");
+    {
+        printf("measure: ERROR opening socket\n");
+        stop_measure_thread(tplink_msrnt);
+    }
+    server = gethostbyname(tplink_msrnt->hostname);
     if (server == NULL) {
         fprintf(stderr,"ERROR, no such host\n");
-        exit(0);
+        stop_measure_thread(tplink_msrnt);
     }
+
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     bcopy((char *)server->h_addr,
@@ -111,70 +105,86 @@ char * client(char * buffer, int size_buffer)
          server->h_length);
     serv_addr.sin_port = htons(portno);
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
-        printf("client: ERROR connecting\n");
+    {
+        printf("measure: ERROR connecting\n");
+        stop_measure_thread(tplink_msrnt);
+    }
 
-    //printf("encrypt buffer %s\n", buffer);
+    const char * command = "\{\"emeter\":\{\"get_realtime\":\{}}}";;
+    int size_command;
+    char * crypted_command = encrypt(command, &size_command);
+    char buffer[1024];
+    while (tplink_msrnt->is_running)
+    {
+        // Send command to tplink
+        n = write(sockfd,crypted_command,size_command);
+        if (n < 0)
+        {
+             printf("client: ERROR writing socket\n");
+             stop_measure_thread(tplink_msrnt);
+        }
 
-    n = write(sockfd,buffer,size_buffer);
-    if (n < 0)
-         printf("client: ERROR writing socket\n");
-    //bzero(buffer,256);
+        // Receive answer
+        bzero(buffer, 1024);
+        n = read(sockfd,buffer,1024);
+        if (n < 0)
+        {
+             printf("client: ERROR reading socket\n");
+             stop_measure_thread(tplink_msrnt);
+        }
 
-    char output_buffer[255];
-    n = read(sockfd,output_buffer,255);
-    if (n < 0)
-         printf("client: ERROR reading socket\n");
-    printf("tplink returned %d bytes\n", n);
+        // Decrypt answer
+        // Size of answer is stored in the first 4 bytes
+        int size_answer = n - 4;
+        char * answer = (char *)malloc(size_answer);
+        memcpy(answer, buffer + 4, size_answer);
+        decrypt(answer, size_answer);
 
-    int size_answer;
-    memcpy(&size_answer, output_buffer, sizeof(int));
-    size_answer = __bswap_32 (size_answer);
+        // Process answer
+        compute_measure(tplink_msrnt, answer);
+        free(answer);
 
-    printf("size_answer = %d\n", size_answer);
-    char * answer = (char *)malloc(size_answer);
-
-    memcpy(answer, output_buffer + 4, size_answer);
-    decrypt(answer, size_answer);
-
+        // Wait for next measure
+        sleep(tplink_msrnt->delta_time_measures);
+    }
+    
     close(sockfd);
-    return answer;
 }
+
+int init_tplink_plugin(tplink_measurement_t * tplink_msrnt, const char * hostname, double delta_time_measures)
+{
+    tplink_msrnt->hostname = hostname;
+    tplink_msrnt->energy_consumed = 0.0;
+    
+    struct timespec current_time;
+    clock_gettime(CLOCK_REALTIME, &current_time);
+    tplink_msrnt->last_measure_timestamp = current_time.tv_sec + current_time.tv_nsec / 1e9;    // in seconds
+
+    tplink_msrnt->delta_time_measures = delta_time_measures;
+    tplink_msrnt->is_running = 1;
+    const char *regex="\"power_mw\":[0-9]*";
+    regcomp(&tplink_msrnt->reg, regex, REG_EXTENDED);
+    int ret = pthread_create(&tplink_msrnt->measure_thread, NULL, measure, (void *)tplink_msrnt);
+    return ret;
+}
+
+double get_current_energy_tplink(energy_data_t data)
+{
+    tplink_measurement_t * tplink_msrnt = (tplink_measurement_t *)data;
+
+    return tplink_msrnt->energy_consumed;
+}
+
 
 int main(int argc, char *argv[])
 {
-    pthread_t server_thread;
-    pthread_t client_thread;
-    /*
-    int ret = pthread_create(&server_thread, NULL, server, NULL);
-    ret = pthread_create(&client_thread, NULL, client, NULL);
-
-    sleep(0.05); // time for server to initialize socket
-
-    pthread_join(client_thread, NULL);
-    pthread_join(server_thread, NULL);
-    */
-
-    const char * test_crypt = "\{\"emeter\":\{\"get_realtime\":\{}}}";
-    //int size_input = strlen(test_crypt);
-    //memcpy(buffer, &size_input, sizeof(int));
-    //printf("test_crypt = %s\n", test_crypt);
-    //strcpy(buffer + 4, test_crypt);
-    //printf("buffer = %s\n", buffer);
-    //buffer[strlen(test_crypt) + 1 + 4] = '\0';
-    //printf("buffer = %s\n", buffer);
-
-    int size_crypted;
-    char * buffer = encrypt(test_crypt, &size_crypted);
-    char * answer = client(buffer, size_crypted);
-    printf("tplink answer: %s\n", answer);
-    /*int ret = pthread_create(&client_thread, NULL, client, (void *)buffer);
-
-    pthread_join(client_thread, NULL);
-
-    int size_return = 0;
-    memcpy(&size_return, buffer, sizeof(int));
-    decrypt(buffer + 4, size_return);
-    //encrypt(buffer, strlen(buffer));
-    printf("%s\n", buffer);*/
-    return 0;
+   tplink_measurement_t tplink;
+   if (!init_tplink_plugin(&tplink, argv[1], 0.001))
+   {
+	sleep(1.0);
+	stop_measure_thread(&tplink);
+	pthread_join(tplink.measure_thread, NULL);
+	printf("energy_consumed = %lf\n", get_current_energy_tplink((energy_data_t)&tplink));
+   }
+   return 0;
 }
