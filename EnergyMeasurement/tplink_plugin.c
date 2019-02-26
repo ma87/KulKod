@@ -175,7 +175,7 @@ double get_current_energy_tplink(energy_data_t data)
     return tplink_msrnt->energy_consumed;
 }
 
-
+/*
 int main(int argc, char *argv[])
 {
    tplink_measurement_t tplink;
@@ -188,3 +188,4 @@ int main(int argc, char *argv[])
    }
    return 0;
 }
+*/

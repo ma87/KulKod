@@ -1,6 +1,8 @@
 #ifndef __ENERGY_PLUGIN__H__
 #define __ENERGY_PLUGIN__H__
 
+#define NUMBER_PLUGINS 2
+
 #ifdef __cplusplus
 extern "C" {
 #endif

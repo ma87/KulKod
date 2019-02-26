@@ -19,6 +19,7 @@ target_sources(
   INTERFACE
   ${CMAKE_CURRENT_LIST_DIR}/energy_measurement.c
   ${CMAKE_CURRENT_LIST_DIR}/rapl.c
+  ${CMAKE_CURRENT_LIST_DIR}/tplink_plugin.c
 )
 
 target_link_libraries(
@@ -26,6 +27,7 @@ target_link_libraries(
 
   INTERFACE
   m
+  pthread
 )
 
 add_executable(${TARGET_EXE} main.c)

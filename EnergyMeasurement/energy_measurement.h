@@ -3,6 +3,7 @@
 
 #include <time.h>
 #include "rapl.h"
+#include "tplink_plugin.h"
 #include "energy_plugin.h"
 
 #ifdef __cplusplus
